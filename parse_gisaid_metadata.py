@@ -4,7 +4,7 @@ import argparse
 
 def open_file(path):
     '''Function to open GISAID metadata file.'''
-    metadata = pd.read_csv(path, sep='\t')
+    metadata = pd.read_csv(path, sep='\t', low_memory=False)
     return metadata
 
 
@@ -30,6 +30,10 @@ def filter_by_host(df):
     '''Function to filter out non-human hosts'''
     return df[df.Host == 'Human']
 
+def get_complete_genomes(df):
+    '''Function that leaves rows for complete genomes only'''
+    return df[df['Is complete?'] == True]
+
 
 def get_country(df):
     '''Function that creates a country column'''
@@ -39,7 +43,6 @@ def get_country(df):
 def filter_columns(df):
     '''Function that takes the relevant columns and formats column names'''
     # Rename columns
-    print(df.columns)
     df = df.rename(columns={
         'Accession ID': 'accession_id',
         'Virus name': 'virus_name',
@@ -131,6 +134,7 @@ def main():
     metadata = open_file(args.input)
     metadata = filter_by_date(metadata, args.start, args.end)
     metadata = filter_by_host(metadata)
+    metadata = get_complete_genomes(metadata)
     metadata = get_country(metadata)
     metadata = filter_columns(metadata)
     output_file(metadata, args.output, args.acc)
